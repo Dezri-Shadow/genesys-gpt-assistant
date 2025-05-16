@@ -41,6 +41,7 @@ jQuery(document).ready(function($) {
             ${addQuirk ? 'Include a unique quirk for this NPC.' : ''}
             ${addPrompts ? 'Add a few roleplay prompts or lines this NPC might say.' : ''}
             Return the result in detailed JSON format, including stats, background, and roleplay elements.
+            Ensure that all skill dice pools are based on valid Genesys logic, using the NPC's characteristics and skill ranks. Show only the final calculated dice pool.
             `.trim();
 
         $('#gga-loading').show();
