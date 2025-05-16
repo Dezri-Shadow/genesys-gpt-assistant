@@ -1,0 +1,223 @@
+jQuery(document).ready(function($) {
+    const form = document.getElementById('gga-form');
+
+    form.addEventListener('submit', function(e) {
+        // Perform Bootstrap validation
+        if (!form.checkValidity()) {
+            e.preventDefault();
+            e.stopPropagation();
+            form.classList.add('was-validated');
+            return;
+        }
+
+        e.preventDefault();
+
+        // Collect sanitized values
+        const setting = $('#gga-setting').val();
+        const level = $('#gga-level').val();
+        const tier = $('#gga-tier').val();
+        const players = parseInt($('#gga-players').val(), 10);
+        const world = $('#gga-world').val().trim();
+        const addQuirk = $('#gga-quirk').is(':checked');
+        const addPrompts = $('#gga-prompts').is(':checked');
+
+        // Extra content validation
+        if (world.length < 10 ) {
+            alert('Please provide more detailed descriptions (at least 10 characters).');
+            return;
+        }
+
+        if (world.length > 800 ) {
+            alert('Text inputs must not exceed 800 characters.');
+            return;
+        }        
+
+        const prompt = `
+            Generate a ${level}-level NPC for the Genesys RPG system.
+            Setting: ${setting}
+            Player Experience Tier: ${tier}
+            Number of Players: ${players}
+            World Background: ${world}
+            ${addQuirk ? 'Include a unique quirk for this NPC.' : ''}
+            ${addPrompts ? 'Add a few roleplay prompts or lines this NPC might say.' : ''}
+            Return the result in detailed JSON format, including stats, background, and roleplay elements.
+            `.trim();
+
+        $('#gga-loading').show();
+        $('#gga-submit').prop('disabled', true);
+        // API request
+        const apiUrl = `${window.location.origin}/wp-json/gga/v1/chat/`;
+        $.ajax({
+            url: apiUrl,
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ prompt }),
+            success: function(res) {
+                const content = res.choices?.[0]?.message?.content || 'No response';
+
+                try {
+                    const parsed = JSON.parse(content);
+                
+                    if (!isValidNPCStructure(parsed)) {
+                        $('#gga-json-display').html('<div class="text-danger"><strong>Invalid NPC format received.</strong></div>');
+                    } else {
+                        const html = renderJSONToHTML(parsed);
+                        $('#gga-json-display').html(html);
+                    }
+
+                } catch (e) {
+                    $('#gga-json-display').html('<div class="text-danger"><strong>Response was not valid JSON.</strong></div>');
+                }
+
+                const modal = new bootstrap.Modal(document.getElementById('gga-modal'));
+                $('#gga-loading').hide();
+                $('#gga-submit').prop('disabled', false);
+                modal.show();
+            },
+            
+            error: function(jqXHR, textStatus, errorThrown) {
+                $('#gga-loading').hide();
+                $('#gga-submit').prop('disabled', false);
+            
+                let message = 'An error occurred while contacting the GPT API.';
+            
+                if (jqXHR.responseJSON && jqXHR.responseJSON.error) {
+                    message += `\n\nDetails: ${jqXHR.responseJSON.error}`;
+                } else if (textStatus === 'timeout') {
+                    message += '\n\nThe request timed out. Please try again.';
+                } else if (textStatus === 'parsererror') {
+                    message += '\n\nReceived an unexpected response format.';
+                }
+            
+                $('#gga-modal-content').text(message);
+                $('#gga-json-display').html('');
+            
+                const modal = new bootstrap.Modal(document.getElementById('gga-modal'));
+                modal.show();
+            
+                console.warn('GPT API error:', {
+                    status: textStatus,
+                    error: errorThrown,
+                    response: jqXHR.responseText
+                });
+            } 
+                     
+        });
+    });
+
+    $('#gga-json-display').on('click', '.gga-toggle', function() {
+        const $toggle = $(this);
+        const $target = $toggle.nextAll('.gga-collapsible').first();
+        $target.toggle();
+        $toggle.text($target.is(':visible') ? '▼' : '▶');
+    });
+
+    function bindCharCounter(id, counterId, limit) {
+        $(`#${id}`).on('input', function() {
+            const len = $(this).val().length;
+            $(`#${counterId}`).text(len);
+            if (len > limit) {
+                $(this).addClass('is-invalid');
+            } else {
+                $(this).removeClass('is-invalid');
+            }
+        });
+    }
+    
+    bindCharCounter('gga-world', 'world-count', 800);
+    bindCharCounter('gga-events', 'events-count', 800);
+});
+
+/* Old JSON Render function
+// JSON renderer
+function renderJSONToHTML(json) {
+    if (typeof json !== 'object' || json === null) {
+        return `<span>${json}</span>`;
+    }
+
+    let html = '<ul class="gga-json">';
+    for (const key in json) {
+        const value = json[key];
+        if (typeof value === 'object' && value !== null) {
+            html += `
+                <li>
+                    <span class="gga-toggle">▶</span> <strong>${key}</strong>:
+                    <div class="gga-collapsible">
+                        ${renderJSONToHTML(value)}
+                    </div>
+                </li>
+            `;
+        } else {
+            html += `<li><strong>${key}:</strong> ${value}</li>`;
+        }
+    }
+    html += '</ul>';
+    return html;
+}
+*/
+function renderJSONToHTML(npc) {
+    const capitalize = str => str.charAt(0).toUpperCase() + str.slice(1);
+
+    let html = '<div class="npc-block">';
+
+    const sections = [
+        'name', 'type', 'characteristics', 'skills',
+        'talents', 'gear', 'combat_stats',
+        'tactics', 'quirks', 'complications'
+    ];
+
+    for (const section of sections) {
+        const data = npc[section];
+        if (!data) continue;
+
+        html += `<h4>${capitalize(section.replace('_', ' '))}</h4>`;
+
+        if (typeof data === 'string' || typeof data === 'number') {
+            html += `<p>${data}</p>`;
+        } else if (Array.isArray(data)) {
+            html += '<ul>';
+            for (const item of data) {
+                html += `<li>${item.name ? `<strong>${item.name}:</strong> ${item.description || item.dice_pool || ''}` : JSON.stringify(item)}</li>`;
+            }
+            html += '</ul>';
+        } else if (typeof data === 'object') {
+            html += '<ul>';
+            for (const key in data) {
+                html += `<li><strong>${capitalize(key)}:</strong> ${data[key]}</li>`;
+            }
+            html += '</ul>';
+        }
+    }
+
+    html += '</div>';
+    return html;
+}
+
+
+/* Commented out alternate version of isValidNPCStructure()
+function isValidNPCStructure(npc) {
+    return (
+        npc &&
+        typeof npc.name === 'string' &&
+        ['Minion', 'Rival', 'Nemesis'].includes(npc.type) &&
+        npc.characteristics?.Brawn &&
+        Array.isArray(npc.skills) &&
+        Array.isArray(npc.talents) &&
+        Array.isArray(npc.gear) &&
+        typeof npc.combat_stats?.soak === 'number'
+    );
+}
+*/
+
+function isValidNPCStructure(npc) {
+    if (!npc || typeof npc !== 'object') return false;
+
+    const requiredKeys = ['name', 'type', 'characteristics', 'skills', 'talents', 'gear', 'combat_stats'];
+    const hasKeys = requiredKeys.every(key => npc.hasOwnProperty(key));
+
+    const validType = ['Minion', 'Rival', 'Nemesis'].includes(npc.type);
+    const validChar = npc.characteristics && typeof npc.characteristics.Brawn === 'number';
+
+    return hasKeys && validType && validChar;
+}
+

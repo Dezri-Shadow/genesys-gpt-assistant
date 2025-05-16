@@ -1,0 +1,68 @@
+.gga-json {
+    list-style-type: none;
+    padding-left: 20px;
+    font-family: monospace;
+    font-size: 14px;
+}
+
+.gga-json > li {
+    margin: 4px 0;
+}
+
+.gga-toggle {
+    cursor: pointer;
+    color: #0073aa;
+    user-select: none;
+    margin-right: 5px;
+}
+
+.gga-toggle:hover {
+    text-decoration: underline;
+}
+
+.gga-collapsible {
+    margin-left: 20px;
+    display: none;
+}
+
+/* Ensure Bootstrap modal appears above Divi's fixed header */
+.modal-backdrop {
+    z-index: 10500 !important;
+}
+
+.modal {
+    z-index: 10600 !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+/* If necessary, ensure that when the modal is shown it is visible */
+.modal.show {
+    display: block !important;
+    opacity: 1 !important;
+}
+
+/* Remove any conflicting transforms that might push modal off-screen */
+.modal.fade .modal-dialog {
+    -webkit-transform: none;
+    transform: none;
+}
+
+.modal-dialog {
+    margin-top: 140px; /* adjust based on Divi header height */
+}
+
+/* Force modal and body content to render at full brightness */
+.modal-content {
+    background-color: #fff !important;
+    filter: none !important;
+    opacity: 1 !important;
+    z-index: 10610 !important;
+}
+
+body.modal-open {
+    filter: none !important;
+    overflow: hidden !important;
+    pointer-events: auto !important;
+    opacity: 1 !important;
+}
