@@ -1,0 +1,17 @@
+# WordPress plugin ignore list
+*.log
+*.tmp
+*.bak
+*.swp
+.DS_Store
+node_modules/
+vendor/
+.idea/
+.vscode/
+__pycache__/
+.env
+.env.*
+debug.log
+*.zip
+*.tar.gz
+*.tgz
