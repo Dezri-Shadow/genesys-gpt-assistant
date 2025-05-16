@@ -157,41 +157,63 @@ function renderJSONToHTML(json) {
 */
 function renderJSONToHTML(npc) {
     const capitalize = str => str.charAt(0).toUpperCase() + str.slice(1);
+    const html = [];
 
-    let html = '<div class="npc-block">';
+    html.push('<div class="npc-render p-3 rounded shadow-sm">');
 
-    const sections = [
-        'name', 'type', 'characteristics', 'skills',
-        'talents', 'gear', 'combat_stats',
-        'tactics', 'quirks', 'complications'
-    ];
+    // Header
+    html.push(`<h3 class="mb-2">${npc.name} <small class="text-muted">(${npc.type})</small></h3>`);
 
-    for (const section of sections) {
-        const data = npc[section];
-        if (!data) continue;
+    // Characteristics
+    html.push('<h5>Characteristics</h5><ul class="list-inline npc-section">');
+    for (const [key, value] of Object.entries(npc.characteristics)) {
+        html.push(`<li class="list-inline-item"><span class="npc-key">${capitalize(key)}</span>: ${value}</li>`);
+    }
+    html.push('</ul>');
 
-        html += `<h4>${capitalize(section.replace('_', ' '))}</h4>`;
-
-        if (typeof data === 'string' || typeof data === 'number') {
-            html += `<p>${data}</p>`;
-        } else if (Array.isArray(data)) {
-            html += '<ul>';
-            for (const item of data) {
-                html += `<li>${item.name ? `<strong>${item.name}:</strong> ${item.description || item.dice_pool || ''}` : JSON.stringify(item)}</li>`;
+    // Combat Stats
+    html.push('<h5>Combat Stats</h5><ul class="list-inline npc-section">');
+    for (const [key, value] of Object.entries(npc.combat_stats)) {
+        if (typeof value === 'object') {
+            for (const [subKey, subVal] of Object.entries(value)) {
+                html.push(`<li class="list-inline-item"><span class="npc-key">${capitalize(subKey)} Defense</span>: ${subVal}</li>`);
             }
-            html += '</ul>';
-        } else if (typeof data === 'object') {
-            html += '<ul>';
-            for (const key in data) {
-                html += `<li><strong>${capitalize(key)}:</strong> ${data[key]}</li>`;
-            }
-            html += '</ul>';
+        } else {
+            html.push(`<li class="list-inline-item"><span class="npc-key">${capitalize(key)}</span>: ${value}</li>`);
         }
     }
+    html.push('</ul>');
 
-    html += '</div>';
-    return html;
+    // Skills
+    html.push('<h5>Skills</h5><ul class="npc-section">');
+    npc.skills.forEach(skill => {
+        html.push(`<li><span class="npc-key">${skill.name}</span>: ${skill.dice_pool}</li>`);
+    });
+    html.push('</ul>');
+
+    // Talents
+    html.push('<h5>Talents</h5><ul class="npc-section">');
+    npc.talents.forEach(talent => {
+        html.push(`<li><span class="npc-key">${talent.name}</span>: ${talent.description}</li>`);
+    });
+    html.push('</ul>');
+
+    // Gear
+    html.push('<h5>Gear</h5><ul class="npc-section">');
+    npc.gear.forEach(item => {
+        html.push(`<li><span class="npc-key">${item.name}</span>: ${item.description}</li>`);
+    });
+    html.push('</ul>');
+
+    // Narrative Elements
+    ['tactics', 'quirks', 'complications'].forEach(field => {
+        html.push(`<h5>${capitalize(field)}</h5><p class="npc-section">${npc[field]}</p>`);
+    });
+
+    html.push('</div>');
+    return html.join('');
 }
+
 
 
 /* Commented out alternate version of isValidNPCStructure()

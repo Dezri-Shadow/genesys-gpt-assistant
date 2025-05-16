@@ -66,3 +66,36 @@ body.modal-open {
     pointer-events: auto !important;
     opacity: 1 !important;
 }
+
+.npc-render {
+    background-color: #fff;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+.npc-render h3 {
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 5px;
+    margin-bottom: 15px;
+}
+
+.npc-section {
+    margin-bottom: 1rem;
+}
+
+.npc-key {
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.npc-render ul {
+    padding-left: 1.25rem;
+}
+
+.npc-render ul.list-inline {
+    padding-left: 0;
+}
+
+.npc-render li {
+    margin-bottom: 0.25rem;
+}
