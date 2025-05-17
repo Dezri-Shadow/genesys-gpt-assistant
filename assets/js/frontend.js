@@ -163,13 +163,18 @@ function renderDicePool(rank, charVal) {
     const dice = [];
 
     for (let i = 0; i < upgrades; i++) {
-        dice.push('<span class="icon-die icon-die-proficiency" title="Proficiency"></span>');
+        dice.push('<img src="/wp-content/plugins/genesys-gpt-assistant/assets/images/dice/die-proficiency.png" alt="Proficiency Die" class="die-icon">');
     }
     for (let i = 0; i < base - upgrades; i++) {
-        dice.push('<span class="icon-die icon-die-ability" title="Ability"></span>');
+        dice.push('<img src="/wp-content/plugins/genesys-gpt-assistant/assets/images/dice/die-ability.png" alt="Ability Die" class="die-icon">');
     }
 
-    return dice.join('');
+    return `<span class="die-stack">${dice.join('')}</span>`;
+}
+
+// For future symbol rendering if needed
+function renderSymbol(type) {
+    return `<img src="/wp-content/plugins/genesys-gpt-assistant/assets/images/symbols/symbol-${type}.png" alt="${type}" class="symbol-icon">`;
 }
 
 function renderJSONToHTML(npc) {

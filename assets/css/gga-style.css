@@ -100,39 +100,19 @@ body.modal-open {
     margin-bottom: 0.25rem;
 }
 
-.icon-die {
-    display: inline-block;
+.die-icon,
+.symbol-icon {
     width: 32px;
     height: 32px;
-    background-image: url('../images/dice-sprite.jpg');
-    background-repeat: no-repeat;
-    background-size: auto;
     margin-right: 4px;
-}
-
-.icon-die-boost       { background-position:   0px   0; }
-.icon-die-setback     { background-position: -32px   0; }
-.icon-die-ability     { background-position: -64px   0; }
-.icon-die-difficulty  { background-position: -96px   0; }
-.icon-die-proficiency { background-position: -128px  0; }
-.icon-die-challenge   { background-position: -160px  0; }
-
-.icon-symbol {
     display: inline-block;
-    width: 32px;
-    height: 32px;
-    background-image: url('../images/symbol-sprite.png');
-    background-repeat: no-repeat;
-    background-size: auto;
-    margin-right: 4px;
+    vertical-align: middle;
 }
 
-/* Top Row */
-.icon-symbol-success    { background-position:   0px   0px; }
-.icon-symbol-advantage  { background-position: -32px   0px; }
-.icon-symbol-triumph    { background-position: -64px   0px; }
-
-/* Bottom Row */
-.icon-symbol-failure    { background-position:   0px -32px; }
-.icon-symbol-threat     { background-position: -32px -32px; }
-.icon-symbol-despair    { background-position: -64px -32px; }
+.die-stack {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px;
+    margin-bottom: 4px;
+}
