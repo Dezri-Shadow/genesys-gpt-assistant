@@ -156,11 +156,26 @@ function renderJSONToHTML(json) {
     return html;
 }
 */
+
+function renderDicePool(rank, charVal) {
+    const base = Math.max(rank, charVal);
+    const upgrades = Math.min(rank, charVal);
+    const dice = [];
+
+    for (let i = 0; i < upgrades; i++) {
+        dice.push('<span class="icon-die icon-die-proficiency" title="Proficiency"></span>');
+    }
+    for (let i = 0; i < base - upgrades; i++) {
+        dice.push('<span class="icon-die icon-die-ability" title="Ability"></span>');
+    }
+
+    return dice.join('');
+}
+
 function renderJSONToHTML(npc) {
     const capitalize = str => str.charAt(0).toUpperCase() + str.slice(1);
-    const html = [];
 
-    html.push('<div class="npc-render p-3 rounded shadow-sm">');
+    const html = ['<div class="npc-render p-3 rounded shadow-sm">'];
 
     // Header
     html.push(`<h3 class="mb-2">${npc.name} <small class="text-muted">(${npc.type})</small></h3>`);
@@ -168,7 +183,7 @@ function renderJSONToHTML(npc) {
     // Characteristics
     html.push('<h5>Characteristics</h5><ul class="list-inline npc-section">');
     for (const [key, value] of Object.entries(npc.characteristics)) {
-        html.push(`<li class="list-inline-item"><span class="npc-key">${capitalize(key)}</span>: ${value}</li>`);
+        html.push(`<li class="list-inline-item"><strong>${capitalize(key)}:</strong> ${value}</li>`);
     }
     html.push('</ul>');
 
@@ -177,36 +192,38 @@ function renderJSONToHTML(npc) {
     for (const [key, value] of Object.entries(npc.combat_stats)) {
         if (typeof value === 'object') {
             for (const [subKey, subVal] of Object.entries(value)) {
-                html.push(`<li class="list-inline-item"><span class="npc-key">${capitalize(subKey)} Defense</span>: ${subVal}</li>`);
+                html.push(`<li class="list-inline-item"><strong>${capitalize(subKey)} Defense:</strong> ${subVal}</li>`);
             }
         } else {
-            html.push(`<li class="list-inline-item"><span class="npc-key">${capitalize(key)}</span>: ${value}</li>`);
+            html.push(`<li class="list-inline-item"><strong>${capitalize(key)}:</strong> ${value}</li>`);
         }
     }
     html.push('</ul>');
 
-    // Skills
+    // Skills with dice pool rendering
     html.push('<h5>Skills</h5><ul class="npc-section">');
     npc.skills.forEach(skill => {
-        html.push(`<li><span class="npc-key">${skill.name}</span>: ${skill.dice_pool}</li>`);
+        const charVal = npc.characteristics[skill.characteristic];
+        const pool = renderDicePool(skill.rank, charVal);
+        html.push(`<li><strong>${skill.name}</strong> (${skill.characteristic} ${charVal}, Rank ${skill.rank}): ${pool}</li>`);
     });
     html.push('</ul>');
 
     // Talents
     html.push('<h5>Talents</h5><ul class="npc-section">');
     npc.talents.forEach(talent => {
-        html.push(`<li><span class="npc-key">${talent.name}</span>: ${talent.description}</li>`);
+        html.push(`<li><strong>${talent.name}</strong>: ${talent.description}</li>`);
     });
     html.push('</ul>');
 
     // Gear
     html.push('<h5>Gear</h5><ul class="npc-section">');
     npc.gear.forEach(item => {
-        html.push(`<li><span class="npc-key">${item.name}</span>: ${item.description}</li>`);
+        html.push(`<li><strong>${item.name}</strong>: ${item.description}</li>`);
     });
     html.push('</ul>');
 
-    // Narrative Elements
+    // Narrative Sections
     ['tactics', 'quirks', 'complications'].forEach(field => {
         html.push(`<h5>${capitalize(field)}</h5><p class="npc-section">${npc[field]}</p>`);
     });
@@ -214,6 +231,7 @@ function renderJSONToHTML(npc) {
     html.push('</div>');
     return html.join('');
 }
+
 
 
 

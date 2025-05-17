@@ -53,15 +53,20 @@ function gga_handle_chat_request(WP_REST_Request $request) {
     
     Guidelines:
     - All characteristics should use Genesys terms (e.g., Brawn, Agility).
-    - Skills must include both name and final dice pool, using Genesys emoji symbols:
-      🟩 Ability, 🟨 Proficiency, 🟦 Boost, 🟥 Difficulty, 🛑 Challenge, ⬛ Setback.
     - Talents and gear should reference the Genesys Core Rulebook unless otherwise specified.
     - The 'tactics', 'quirks', and 'complications' fields should be brief narrative descriptions.
-    When calculating dice pools:
-    - Use the highest value between the skill rank and the associated characteristic as the number of dice.
-    - Use the lower value to determine how many of those are upgraded from Ability (🟩) to Proficiency (🟨).
-    - All skills must follow this rule exactly.
-    - Do not generate pools arbitrarily or randomly.
+    Do not generate Genesys dice symbols or calculate dice pools.
+
+    Instead, for each skill, output the skill's name, its rank (0–5), and the associated characteristic (e.g., Agility, Brawn, Intellect, etc.).
+
+    The plugin will calculate the actual dice pool based on this data.
+
+    Example format for a skill entry:
+    {
+    "name": "Ranged (Light)",
+    "rank": 2,
+    "characteristic": "Agility"
+    }
 
     Do not include explanations, greetings, or formatting outside the JSON block.
 
@@ -70,7 +75,7 @@ function gga_handle_chat_request(WP_REST_Request $request) {
     "name": "NPC Name",
     "type": "Minion | Rival | Nemesis",
     "characteristics": { "Brawn": 2, ... },
-    "skills": [{ "name": "Ranged (Light)", "rank": 1, "dice_pool": "🟨🟩🟩" }],
+    "skills": [{ "name": "Discipline", "rank": 3, "characteristic": "Willpower" }],
     "talents": [{ "name": "Toughened", "description": "Gain +2 Wounds", "tier": 1 }],
     "gear": [{ "name": "Blaster", "description": "Ranged (Light); 6 Damage; Crit 3" }],
     "combat_stats": { "soak": 4, "wounds": 12, "strain": 10, "defense": { "melee": 1, "ranged": 0 } },
