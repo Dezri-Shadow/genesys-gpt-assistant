@@ -1,6 +1,14 @@
 jQuery(document).ready(function($) {
     const form = document.getElementById('gga-form');
 
+    let knownTalents = {};
+
+    fetch('/wp-content/plugins/genesys-gpt-assistant/assets/data/talents.json')
+        .then(response => response.json())
+        .then(data => { knownTalents = data; })
+        .catch(err => console.error('Failed to load talent data:', err));
+
+
     form.addEventListener('submit', function(e) {
         // Perform Bootstrap validation
         if (!form.checkValidity()) {
@@ -129,34 +137,6 @@ jQuery(document).ready(function($) {
     bindCharCounter('gga-events', 'events-count', 800);
 });
 
-/* Old JSON Render function
-// JSON renderer
-function renderJSONToHTML(json) {
-    if (typeof json !== 'object' || json === null) {
-        return `<span>${json}</span>`;
-    }
-
-    let html = '<ul class="gga-json">';
-    for (const key in json) {
-        const value = json[key];
-        if (typeof value === 'object' && value !== null) {
-            html += `
-                <li>
-                    <span class="gga-toggle">▶</span> <strong>${key}</strong>:
-                    <div class="gga-collapsible">
-                        ${renderJSONToHTML(value)}
-                    </div>
-                </li>
-            `;
-        } else {
-            html += `<li><strong>${key}:</strong> ${value}</li>`;
-        }
-    }
-    html += '</ul>';
-    return html;
-}
-*/
-
 function renderDicePool(rank, charVal) {
     const base = Math.max(rank, charVal);
     const upgrades = Math.min(rank, charVal);
@@ -217,9 +197,15 @@ function renderJSONToHTML(npc) {
     // Talents
     html.push('<h5>Talents</h5><ul class="npc-section">');
     npc.talents.forEach(talent => {
-        html.push(`<li><strong>${talent.name}</strong>: ${talent.description}</li>`);
+        const expectedTier = knownTalents[talent.name];
+        const correct = expectedTier === talent.tier;
+        const warning = expectedTier && !correct
+        ? `<span class="text-danger" title="Expected Tier ${expectedTier}">⚠️</span>`
+        : '';
+        html.push(`<li><strong>${talent.name}</strong> (Tier ${talent.tier}): ${talent.description} ${warning}</li>`);
     });
     html.push('</ul>');
+
 
     // Gear
     html.push('<h5>Gear</h5><ul class="npc-section">');

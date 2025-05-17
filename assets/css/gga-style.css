@@ -102,11 +102,11 @@ body.modal-open {
 
 .die-icon,
 .symbol-icon {
-    width: 32px;
-    height: 32px;
+    width: 24px;
+    height: 24px;
     margin-right: 4px;
     display: inline-block;
-    vertical-align: middle;
+    transform: translateY(4px);
 }
 
 .die-stack {

@@ -54,6 +54,7 @@ function gga_handle_chat_request(WP_REST_Request $request) {
     Guidelines:
     - All characteristics should use Genesys terms (e.g., Brawn, Agility).
     - Talents and gear should reference the Genesys Core Rulebook unless otherwise specified.
+    - Include the official tier level of each talent (1 to 5), based on the Genesys Core Rulebook.
     - The 'tactics', 'quirks', and 'complications' fields should be brief narrative descriptions.
     Do not generate Genesys dice symbols or calculate dice pools.
 
@@ -76,7 +77,7 @@ function gga_handle_chat_request(WP_REST_Request $request) {
     "type": "Minion | Rival | Nemesis",
     "characteristics": { "Brawn": 2, ... },
     "skills": [{ "name": "Discipline", "rank": 3, "characteristic": "Willpower" }],
-    "talents": [{ "name": "Toughened", "description": "Gain +2 Wounds", "tier": 1 }],
+    "talents": [{ "name": "Toughened", "tier": 1, "description": "Gain +2 Wounds" }],
     "gear": [{ "name": "Blaster", "description": "Ranged (Light); 6 Damage; Crit 3" }],
     "combat_stats": { "soak": 4, "wounds": 12, "strain": 10, "defense": { "melee": 1, "ranged": 0 } },
     "tactics": "Aggressive flanker using cover",
