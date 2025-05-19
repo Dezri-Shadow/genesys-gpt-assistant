@@ -93,14 +93,37 @@ jQuery(document).ready(function($) {
 
                             const html = renderJSONToHTML(parsed);
                             $('#gga-json-display').html(html);
+
+                            //JSON Download Buttom
                             $('#gga-download-json')
                                 .attr('href', url)
                                 .attr('download', `${parsed.name || 'npc'}.json`)
                                 .show();
+
+                            // Markdown Download Button
                             $('#gga-download-md')
                                 .attr('href', mdUrl)
                                 .attr('download', `${parsed.name || 'npc'}.md`)
                                 .show();
+                                
+                            // Save button setup
+                            $('#gga-save-npc')
+                                .show()
+                                .off('click')
+                                .on('click', function () {
+                                    fetch('/wp-json/gga/v1/save', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'X-WP-Nonce': gga_data.nonce
+                                        },
+                                        body: JSON.stringify({ npc: parsed })
+                                    })
+                                    .then(res => res.json())
+                                    .then(data => alert(data.message || 'NPC saved.'))
+                                    .catch(err => alert('Failed to save NPC.'));
+                                });
+
                     }
 
                 } catch (e) {

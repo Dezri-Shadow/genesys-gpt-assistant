@@ -16,7 +16,37 @@ add_action('rest_api_init', function() {
             return current_user_can('manage_options');
         },
     ]);
+
+    register_rest_route('gga/v1', '/save', [
+        'methods' => 'POST',
+        'callback' => 'gga_save_npc_handler',
+        'permission_callback' => function () {
+            return current_user_can('read');
+        }
+    ]);
 });
+
+function gga_save_npc_handler(WP_REST_Request $request) {
+    $user = wp_get_current_user();
+    if (!$user || !$user->ID) {
+        return new WP_REST_Response(['message' => 'Unauthorized'], 401);
+    }
+
+    $npc = $request->get_param('npc');
+    if (!$npc || !is_array($npc) || empty($npc['name'])) {
+        return new WP_REST_Response(['message' => 'Invalid NPC data'], 400);
+    }
+
+    $npcs = get_user_meta($user->ID, 'gga_saved_npcs', true) ?: [];
+    $npcs[] = [
+        'name' => sanitize_text_field($npc['name']),
+        'data' => $npc,
+        'saved_at' => current_time('mysql')
+    ];
+    update_user_meta($user->ID, 'gga_saved_npcs', $npcs);
+
+    return new WP_REST_Response(['message' => 'NPC saved successfully.'], 200);
+}
 
 function gga_handle_chat_request(WP_REST_Request $request) {
     $body = $request->get_json_params();
@@ -101,9 +131,7 @@ function gga_handle_chat_request(WP_REST_Request $request) {
                 ['role' => 'user', 'content' => $prompt_sanitized],
             ],
         ]),
-    ]);
-
-        
+    ]);      
 
     if (is_wp_error($response)) {
         error_log('OpenAI API request failed: ' . $response->get_error_message());
@@ -133,9 +161,30 @@ function gga_handle_chat_request(WP_REST_Request $request) {
     }
 
     $body = json_decode(wp_remote_retrieve_body($response), true);
+    $content = $body['choices'][0]['message']['content'] ?? null;
+    $parsed_npc = json_decode($content, true);
+
+    // Optional: Validate parsed JSON before saving
+    if (json_last_error() === JSON_ERROR_NONE && is_array($parsed_npc) && !empty($parsed_npc['name'])) {
+        $current_user = wp_get_current_user();
+        if ($current_user && $current_user->ID) {
+            $existing_npcs = get_user_meta($current_user->ID, 'gga_saved_npcs', true) ?: [];
+
+            $new_npc = [
+                'name' => sanitize_text_field($parsed_npc['name']),
+                'data' => $parsed_npc,
+                'saved_at' => current_time('mysql')
+            ];
+
+            $existing_npcs[] = $new_npc;
+            update_user_meta($current_user->ID, 'gga_saved_npcs', $existing_npcs);
+        }
+    }
+
     return new WP_REST_Response([
         'choices' => $body['choices']
     ], 200);
+
 
 }
 

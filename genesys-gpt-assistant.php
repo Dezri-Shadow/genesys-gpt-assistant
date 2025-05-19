@@ -28,9 +28,12 @@ function gga_enqueue_assets() {
     wp_enqueue_style('gga-style', plugin_dir_url(__FILE__) . 'assets/css/gga-style.css');
     wp_enqueue_script('gga-frontend', plugin_dir_url(__FILE__) . 'assets/js/frontend.js', ['jquery'], '1.0', true);
 
-    wp_localize_script('gga-frontend', 'gga_ajax', ['ajax_url' => admin_url('admin-ajax.php')]);
-}
+    wp_localize_script('gga-frontend', 'gga_data', [
+      'ajax_url' => admin_url('admin-ajax.php'),
+      'nonce' => wp_create_nonce('wp_rest') // Enables auth for REST API calls
+    ]);
 
+}
 
 add_action('wp_enqueue_scripts', 'gga_enqueue_assets');
 
@@ -51,6 +54,7 @@ function gga_render_modal() {
           <div class="modal-footer justify-content-start">
             <a id="gga-download-json" class="btn btn-outline-secondary me-2" style="display:none;">Download JSON</a>
             <a id="gga-download-md" class="btn btn-outline-secondary" style="display:none;">Download Markdown</a>
+            <button id="gga-save-npc" class="btn btn-success me-2" style="display:none;">Save NPC</button>
           </div>
         </div>
       </div>
