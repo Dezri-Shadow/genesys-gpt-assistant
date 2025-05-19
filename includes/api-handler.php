@@ -24,7 +24,25 @@ add_action('rest_api_init', function() {
             return current_user_can('read');
         }
     ]);
+
+    register_rest_route('gga/v1', '/npcs', [
+        'methods' => 'GET',
+        'callback' => 'gga_get_saved_npcs',
+        'permission_callback' => function () {
+            return current_user_can('read');
+        }
+    ]);
 });
+
+function gga_get_saved_npcs() {
+    $user = wp_get_current_user();
+    if (!$user || !$user->ID) {
+        return new WP_REST_Response(['error' => 'Unauthorized'], 401);
+    }
+
+    $npcs = get_user_meta($user->ID, 'gga_saved_npcs', true) ?: [];
+    return new WP_REST_Response(['npcs' => $npcs], 200);
+}
 
 function gga_save_npc_handler(WP_REST_Request $request) {
     $user = wp_get_current_user();

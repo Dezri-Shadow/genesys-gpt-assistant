@@ -105,7 +105,7 @@ jQuery(document).ready(function($) {
                                 .attr('href', mdUrl)
                                 .attr('download', `${parsed.name || 'npc'}.md`)
                                 .show();
-                                
+
                             // Save button setup
                             $('#gga-save-npc')
                                 .show()
@@ -334,4 +334,34 @@ function npcToMarkdown(npc) {
             });
 
         return lines.join('\n');
+}
+
+function loadSavedNPCs() {
+    fetch('/wp-json/gga/v1/npcs', {
+        headers: { 'X-WP-Nonce': gga_data.nonce }
+    })
+    .then(res => res.json())
+    .then(data => {
+        const list = $('#gga-npc-list').empty();
+        if (!data.npcs?.length) {
+            list.append('<li class="list-group-item">No saved NPCs found.</li>');
+            return;
+        }
+
+        data.npcs.forEach((entry, index) => {
+            const name = entry.name || `NPC ${index + 1}`;
+            const li = $(`<li class="list-group-item">${name} <button class="btn btn-sm btn-primary float-end">View</button></li>`);
+            li.find('button').on('click', () => {
+                const html = renderJSONToHTML(entry.data);
+                $('#gga-saved-npc-display').html(html);
+                const modal = new bootstrap.Modal(document.getElementById('gga-saved-npc-modal'));
+                modal.show();
+            });
+            list.append(li);
+        });
+    })
+    .catch(err => {
+        console.error('Failed to load NPCs:', err);
+        $('#gga-npc-list').html('<li class="list-group-item text-danger">Error loading saved NPCs.</li>');
+    });
 }

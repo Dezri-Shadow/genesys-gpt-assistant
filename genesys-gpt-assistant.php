@@ -20,6 +20,43 @@ function gga_render_form() {
 }
 add_shortcode('genesys_gpt_form', 'gga_render_form');
 
+function gga_saved_npcs_shortcode() {
+    if (!is_user_logged_in()) {
+        return '<p>You must be logged in to view your saved NPCs.</p>';
+    }
+
+    // Enqueue frontend.js and pass nonce if not already done
+    wp_enqueue_script('gga-frontend');
+    wp_localize_script('gga-frontend', 'gga_data', [
+        'nonce' => wp_create_nonce('wp_rest')
+    ]);
+
+    // Modal container and trigger zone
+    ob_start(); ?>
+    <div id="gga-saved-npcs">
+        <h4>My Saved NPCs</h4>
+        <ul class="list-group" id="gga-npc-list"></ul>
+    </div>
+
+    <!-- NPC Modal Display -->
+    <div class="modal fade" id="gga-saved-npc-modal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Saved NPC</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body" id="gga-saved-npc-display">
+            <em>Loading...</em>
+          </div>
+        </div>
+      </div>
+    </div>
+    <?php
+    return ob_get_clean();
+}
+add_shortcode('gga_saved_npcs', 'gga_saved_npcs_shortcode');
+
 // Enqueue JS
 function gga_enqueue_assets() {
     wp_enqueue_style('bootstrap-css', 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css');
@@ -34,7 +71,6 @@ function gga_enqueue_assets() {
     ]);
 
 }
-
 add_action('wp_enqueue_scripts', 'gga_enqueue_assets');
 
 add_action('wp_footer', 'gga_render_modal');
