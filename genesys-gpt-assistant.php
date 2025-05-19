@@ -65,7 +65,8 @@ function gga_enqueue_assets() {
 
     wp_localize_script('gga-frontend', 'gga_data', [
       'ajax_url' => admin_url('admin-ajax.php'),
-      'nonce' => wp_create_nonce('wp_rest') // Enables auth for REST API calls
+      'nonce' => wp_create_nonce('wp_rest'), // Enables auth for REST API calls
+      'api_url'  => esc_url_raw(rest_url('gga/v1/')),
     ]);
 
 }

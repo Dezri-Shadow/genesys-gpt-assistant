@@ -343,7 +343,7 @@ function npcToMarkdown(npc) {
 }
 
 function loadSavedNPCs() {
-    fetch('/wp-json/gga/v1/npcs', {
+    fetch(gga_data.api_url + 'npcs', {
         headers: { 'X-WP-Nonce': gga_data.nonce }
     })
     .then(res => res.json())
