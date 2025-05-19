@@ -6,7 +6,7 @@ jQuery(document).ready(function($) {
     }
 
     const form = document.getElementById('gga-form');
-
+    if (form) {
     form.addEventListener('submit', function(e) {
         // Perform Bootstrap validation
         if (!form.checkValidity()) {
@@ -15,7 +15,7 @@ jQuery(document).ready(function($) {
             form.classList.add('was-validated');
             return;
         }
-
+    
         e.preventDefault();
 
         // Collect sanitized values
@@ -173,6 +173,7 @@ jQuery(document).ready(function($) {
                      
         });
     });
+}
 
     $('#gga-json-display').on('click', '.gga-toggle', function() {
         const $toggle = $(this);
@@ -298,7 +299,7 @@ function isValidNPCStructure(npc) {
     return hasKeys && validType && validChar;
 }
 
- // Markdown generator
+// Markdown generator
 function npcToMarkdown(npc) {
     const lines = [];
 
@@ -346,7 +347,18 @@ function loadSavedNPCs() {
     fetch(gga_data.api_url + 'npcs', {
         headers: { 'X-WP-Nonce': gga_data.nonce }
     })
-    .then(res => res.json())
+    .then(async res => {
+        const text = await res.text();
+        try {
+            const json = JSON.parse(text);
+            if (!res.ok) throw new Error(json.message || 'Unknown error');
+            return json;
+        } catch (err) {
+            console.error('Failed to load NPCs:', err, text);
+            $('#gga-npc-link-list').html('<li class="text-danger">Error loading saved NPCs.</li>');
+            throw err;
+        }
+    })
     .then(data => {
         const list = $('#gga-npc-link-list').empty();
         if (!data.npcs?.length) {
