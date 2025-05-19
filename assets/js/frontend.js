@@ -68,9 +68,72 @@ jQuery(document).ready(function($) {
                         });
 
                     }
+                    // Prepare downloadable JSON blob
+                    const blob = new Blob([JSON.stringify(parsed, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+
+                    $('#gga-download-json')
+                        .attr('href', url)
+                        .attr('download', `${parsed.name || 'npc'}.json`)
+                        .show();
+
+                    // Markdown generator
+                    function npcToMarkdown(npc) {
+                        const lines = [];
+
+                        lines.push(`# ${npc.name} (${npc.type})\n`);
+
+                        lines.push(`## Characteristics`);
+                        for (const [key, val] of Object.entries(npc.characteristics)) {
+                            lines.push(`- **${key}**: ${val}`);
+                        }
+
+                        lines.push(`\n## Combat Stats`);
+                        for (const [key, val] of Object.entries(npc.combat_stats)) {
+                            if (typeof val === 'object') {
+                                for (const [subKey, subVal] of Object.entries(val)) {
+                                    lines.push(`- **${subKey} Defense**: ${subVal}`);
+                                }
+                            } else {
+                                lines.push(`- **${key}**: ${val}`);
+                            }
+                        }
+
+                        lines.push(`\n## Skills`);
+                        npc.skills.forEach(skill => {
+                            lines.push(`- **${skill.name}** (${skill.characteristic}, Rank ${skill.rank})`);
+                        });
+
+                        lines.push(`\n## Talents`);
+                        npc.talents.forEach(t => {
+                            lines.push(`- **${t.name}** (Tier ${t.tier}): ${t.description}`);
+                        });
+
+                        lines.push(`\n## Gear`);
+                        npc.gear.forEach(g => {
+                            lines.push(`- **${g.name}**: ${g.description}`);
+                        });
+
+                        ['tactics', 'quirks', 'complications'].forEach(field => {
+                            lines.push(`\n## ${field.charAt(0).toUpperCase() + field.slice(1)}\n${npc[field]}`);
+                        });
+
+                        return lines.join('\n');
+                    }
+                    // Create Markdown blob
+                    const mdBlob = new Blob([npcToMarkdown(parsed)], { type: 'text/markdown' });
+                    const mdUrl = URL.createObjectURL(mdBlob);
+
+                    $('#gga-download-md')
+                        .attr('href', mdUrl)
+                        .attr('download', `${parsed.name || 'npc'}.md`)
+                        .show();
 
                 } catch (e) {
                     $('#gga-json-display').html('<div class="text-danger"><strong>Response was not valid JSON.</strong></div>');
+                    $('#gga-download-json').hide();
+                    $('#gga-download-md').hide();
+
                 }
 
                 const modal = new bootstrap.Modal(document.getElementById('gga-modal'));
@@ -213,24 +276,6 @@ function renderJSONToHTML(npc) {
     html.push('</div>');
     return html.join('');
 }
-
-
-
-
-/* Commented out alternate version of isValidNPCStructure()
-function isValidNPCStructure(npc) {
-    return (
-        npc &&
-        typeof npc.name === 'string' &&
-        ['Minion', 'Rival', 'Nemesis'].includes(npc.type) &&
-        npc.characteristics?.Brawn &&
-        Array.isArray(npc.skills) &&
-        Array.isArray(npc.talents) &&
-        Array.isArray(npc.gear) &&
-        typeof npc.combat_stats?.soak === 'number'
-    );
-}
-*/
 
 function isValidNPCStructure(npc) {
     if (!npc || typeof npc !== 'object') return false;

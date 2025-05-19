@@ -116,3 +116,10 @@ body.modal-open {
     gap: 2px;
     margin-bottom: 4px;
 }
+
+#gga-download-json {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    z-index: 1;
+}
