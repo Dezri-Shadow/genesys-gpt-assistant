@@ -1,4 +1,10 @@
 jQuery(document).ready(function($) {
+
+    //Check if this is the NPC page
+    if ($('#gga-npc-link-list').length) {
+        loadSavedNPCs();
+    }
+
     const form = document.getElementById('gga-form');
 
     form.addEventListener('submit', function(e) {
@@ -342,26 +348,28 @@ function loadSavedNPCs() {
     })
     .then(res => res.json())
     .then(data => {
-        const list = $('#gga-npc-list').empty();
+        const list = $('#gga-npc-link-list').empty();
         if (!data.npcs?.length) {
-            list.append('<li class="list-group-item">No saved NPCs found.</li>');
+            list.append('<li>No saved NPCs found.</li>');
             return;
         }
 
         data.npcs.forEach((entry, index) => {
             const name = entry.name || `NPC ${index + 1}`;
-            const li = $(`<li class="list-group-item">${name} <button class="btn btn-sm btn-primary float-end">View</button></li>`);
-            li.find('button').on('click', () => {
-                const html = renderJSONToHTML(entry.data);
+            const link = $(`<li><a href="#" class="npc-link" data-index="${index}">${name}</a></li>`);
+            link.find('a').on('click', function (e) {
+                e.preventDefault();
+                const html = renderJSONToHTML(data.npcs[index].data);
                 $('#gga-saved-npc-display').html(html);
+                $('#gga-modal-title').text(data.npcs[index].name || 'NPC Details');
                 const modal = new bootstrap.Modal(document.getElementById('gga-saved-npc-modal'));
                 modal.show();
             });
-            list.append(li);
+            list.append(link);
         });
     })
     .catch(err => {
         console.error('Failed to load NPCs:', err);
-        $('#gga-npc-list').html('<li class="list-group-item text-danger">Error loading saved NPCs.</li>');
+        $('#gga-npc-link-list').html('<li class="text-danger">Error loading saved NPCs.</li>');
     });
 }

@@ -25,25 +25,23 @@ function gga_saved_npcs_shortcode() {
         return '<p>You must be logged in to view your saved NPCs.</p>';
     }
 
-    // Enqueue frontend.js and pass nonce if not already done
     wp_enqueue_script('gga-frontend');
     wp_localize_script('gga-frontend', 'gga_data', [
         'nonce' => wp_create_nonce('wp_rest')
     ]);
 
-    // Modal container and trigger zone
     ob_start(); ?>
-    <div id="gga-saved-npcs">
+    <div id="gga-saved-npcs" class="mt-4">
         <h4>My Saved NPCs</h4>
-        <ul class="list-group" id="gga-npc-list"></ul>
+        <ul id="gga-npc-link-list" class="list-unstyled"></ul>
     </div>
 
-    <!-- NPC Modal Display -->
+    <!-- Modal for rendering NPCs -->
     <div class="modal fade" id="gga-saved-npc-modal" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title">Saved NPC</h5>
+            <h5 class="modal-title" id="gga-modal-title">NPC Details</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body" id="gga-saved-npc-display">
