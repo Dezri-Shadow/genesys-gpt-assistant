@@ -85,13 +85,6 @@ function gga_handle_chat_request(WP_REST_Request $request) {
         return new WP_REST_Response(['error' => 'API key is not configured.'], 403);
     }
 
-    if (is_wp_error($response)) {
-        return new WP_REST_Response([
-            'error' => 'Failed to connect to the OpenAI API.',
-            'details' => $response->get_error_message()
-        ], 500);
-    }
-
     $system_msg = <<<EOT
     You are a GM assistant trained in the Genesys RPG system by Fantasy Flight Games. Your role is to generate detailed NPC stat blocks that follow Genesys mechanics and narrative style.
     
