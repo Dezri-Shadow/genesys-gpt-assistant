@@ -1,14 +1,6 @@
 jQuery(document).ready(function($) {
     const form = document.getElementById('gga-form');
 
-    let knownTalents = {};
-
-    fetch('/wp-content/plugins/genesys-gpt-assistant/assets/data/talents.json')
-        .then(response => response.json())
-        .then(data => { knownTalents = data; })
-        .catch(err => console.error('Failed to load talent data:', err));
-
-
     form.addEventListener('submit', function(e) {
         // Perform Bootstrap validation
         if (!form.checkValidity()) {
@@ -70,8 +62,11 @@ jQuery(document).ready(function($) {
                     if (!isValidNPCStructure(parsed)) {
                         $('#gga-json-display').html('<div class="text-danger"><strong>Invalid NPC format received.</strong></div>');
                     } else {
-                        const html = renderJSONToHTML(parsed);
-                        $('#gga-json-display').html(html);
+                        talentsReady.then(() => {
+                            const html = renderJSONToHTML(parsed);
+                            $('#gga-json-display').html(html);
+                        });
+
                     }
 
                 } catch (e) {
@@ -196,15 +191,11 @@ function renderJSONToHTML(npc) {
 
     // Talents
     html.push('<h5>Talents</h5><ul class="npc-section">');
-    npc.talents.forEach(talent => {
-        const expectedTier = knownTalents[talent.name];
-        const correct = expectedTier === talent.tier;
-        const warning = expectedTier && !correct
-        ? `<span class="text-danger" title="Expected Tier ${expectedTier}">⚠️</span>`
-        : '';
-        html.push(`<li><strong>${talent.name}</strong> (Tier ${talent.tier}): ${talent.description} ${warning}</li>`);
-    });
+        npc.talents.forEach(talent => {
+            html.push(`<li><strong>${talent.name}</strong> (Tier ${talent.tier}): ${talent.description}</li>`);
+        });
     html.push('</ul>');
+
 
 
     // Gear
