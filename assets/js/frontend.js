@@ -54,86 +54,59 @@ jQuery(document).ready(function($) {
             contentType: 'application/json',
             data: JSON.stringify({ prompt }),
             success: function(res) {
-                const content = res.choices?.[0]?.message?.content || 'No response';
+                let content = 'No response';
+                if (res && Array.isArray(res.choices) && res.choices[0] && res.choices[0].message && res.choices[0].message.content) {
+                    content = res.choices[0].message.content;
+                }
 
                 try {
+
+                    console.log('Raw GPT content:', content);
+
+                    // Sanitize content from GPT
+                    content = content
+                        .replace(/^\s*```json\s*/i, '')    // Remove Markdown code block start
+                        .replace(/\s*```$/, '')            // Remove code block end
+                        .replace(/[“”]/g, '"')             // Replace curly quotes with standard
+                        .replace(/[‘’]/g, "'")             // Replace curly single quotes
+                        .replace(/""/g, '"')     // collapsed quotes → single quote
+                        .replace(/""([^"”]+)""/g, (_, inner) => `"${inner.replace(/"/g, '\\"')}"`)  // double quote strings → escaped
+                        .trim();                           // Remove leading/trailing whitespace
+                    
+                    console.log('sanitized GPT content:', content);
+
                     const parsed = JSON.parse(content);
+
+                    console.log("Parsed object:", parsed);
                 
                     if (!isValidNPCStructure(parsed)) {
                         $('#gga-json-display').html('<div class="text-danger"><strong>Invalid NPC format received.</strong></div>');
+                        $('#gga-download-json, #gga-download-md').hide();   
                     } else {
-                        talentsReady.then(() => {
+                            // Prepare downloadable JSON blob
+                            const blob = new Blob([JSON.stringify(parsed, null, 2)], { type: 'application/json' });
+                            const url = URL.createObjectURL(blob);
+
+                            // Create Markdown blob
+                            const mdBlob = new Blob([npcToMarkdown(parsed)], { type: 'text/markdown' });
+                            const mdUrl = URL.createObjectURL(mdBlob);
+
                             const html = renderJSONToHTML(parsed);
                             $('#gga-json-display').html(html);
-                        });
-
+                            $('#gga-download-json')
+                                .attr('href', url)
+                                .attr('download', `${parsed.name || 'npc'}.json`)
+                                .show();
+                            $('#gga-download-md')
+                                .attr('href', mdUrl)
+                                .attr('download', `${parsed.name || 'npc'}.md`)
+                                .show();
                     }
-                    // Prepare downloadable JSON blob
-                    const blob = new Blob([JSON.stringify(parsed, null, 2)], { type: 'application/json' });
-                    const url = URL.createObjectURL(blob);
-
-                    $('#gga-download-json')
-                        .attr('href', url)
-                        .attr('download', `${parsed.name || 'npc'}.json`)
-                        .show();
-
-                    // Markdown generator
-                    function npcToMarkdown(npc) {
-                        const lines = [];
-
-                        lines.push(`# ${npc.name} (${npc.type})\n`);
-
-                        lines.push(`## Characteristics`);
-                        for (const [key, val] of Object.entries(npc.characteristics)) {
-                            lines.push(`- **${key}**: ${val}`);
-                        }
-
-                        lines.push(`\n## Combat Stats`);
-                        for (const [key, val] of Object.entries(npc.combat_stats)) {
-                            if (typeof val === 'object') {
-                                for (const [subKey, subVal] of Object.entries(val)) {
-                                    lines.push(`- **${subKey} Defense**: ${subVal}`);
-                                }
-                            } else {
-                                lines.push(`- **${key}**: ${val}`);
-                            }
-                        }
-
-                        lines.push(`\n## Skills`);
-                        npc.skills.forEach(skill => {
-                            lines.push(`- **${skill.name}** (${skill.characteristic}, Rank ${skill.rank})`);
-                        });
-
-                        lines.push(`\n## Talents`);
-                        npc.talents.forEach(t => {
-                            lines.push(`- **${t.name}** (Tier ${t.tier}): ${t.description}`);
-                        });
-
-                        lines.push(`\n## Gear`);
-                        npc.gear.forEach(g => {
-                            lines.push(`- **${g.name}**: ${g.description}`);
-                        });
-
-                        ['tactics', 'quirks', 'complications'].forEach(field => {
-                            lines.push(`\n## ${field.charAt(0).toUpperCase() + field.slice(1)}\n${npc[field]}`);
-                        });
-
-                        return lines.join('\n');
-                    }
-                    // Create Markdown blob
-                    const mdBlob = new Blob([npcToMarkdown(parsed)], { type: 'text/markdown' });
-                    const mdUrl = URL.createObjectURL(mdBlob);
-
-                    $('#gga-download-md')
-                        .attr('href', mdUrl)
-                        .attr('download', `${parsed.name || 'npc'}.md`)
-                        .show();
 
                 } catch (e) {
+                    console.error("JSON parse failure:", e, content);
                     $('#gga-json-display').html('<div class="text-danger"><strong>Response was not valid JSON.</strong></div>');
-                    $('#gga-download-json').hide();
-                    $('#gga-download-md').hide();
-
+                    $('#gga-download-json, #gga-download-md').hide();
                 }
 
                 const modal = new bootstrap.Modal(document.getElementById('gga-modal'));
@@ -280,12 +253,62 @@ function renderJSONToHTML(npc) {
 function isValidNPCStructure(npc) {
     if (!npc || typeof npc !== 'object') return false;
 
-    const requiredKeys = ['name', 'type', 'characteristics', 'skills', 'talents', 'gear', 'combat_stats'];
-    const hasKeys = requiredKeys.every(key => npc.hasOwnProperty(key));
+    const requiredKeys = [
+        'name', 'type', 'characteristics', 'skills',
+        'talents', 'gear', 'combat_stats',
+        'tactics'
+    ];
+
+    const hasKeys = requiredKeys.every(key => Object.prototype.hasOwnProperty.call(npc, key));
 
     const validType = ['Minion', 'Rival', 'Nemesis'].includes(npc.type);
-    const validChar = npc.characteristics && typeof npc.characteristics.Brawn === 'number';
+    const validChar = npc.characteristics &&
+        typeof npc.characteristics.Brawn === 'number' &&
+        typeof npc.characteristics.Agility === 'number';
 
     return hasKeys && validType && validChar;
 }
 
+ // Markdown generator
+function npcToMarkdown(npc) {
+    const lines = [];
+
+    lines.push(`# ${npc.name} (${npc.type})\n`);
+
+    lines.push(`## Characteristics`);
+        for (const [key, val] of Object.entries(npc.characteristics)) {
+            lines.push(`- **${key}**: ${val}`);
+        }
+
+        lines.push(`\n## Combat Stats`);
+            for (const [key, val] of Object.entries(npc.combat_stats)) {
+                if (typeof val === 'object') {
+                    for (const [subKey, subVal] of Object.entries(val)) {
+                        lines.push(`- **${subKey} Defense**: ${subVal}`);
+                    }
+                } else {
+                    lines.push(`- **${key}**: ${val}`);
+                }
+            }
+
+        lines.push(`\n## Skills`);
+            npc.skills.forEach(skill => {
+                lines.push(`- **${skill.name}** (${skill.characteristic}, Rank ${skill.rank})`);
+            });
+
+            lines.push(`\n## Talents`);
+                npc.talents.forEach(t => {
+                    lines.push(`- **${t.name}** (Tier ${t.tier}): ${t.description}`);
+                });
+
+            lines.push(`\n## Gear`);
+                npc.gear.forEach(g => {
+                    lines.push(`- **${g.name}**: ${g.description}`);
+                });
+
+            ['tactics', 'quirks', 'complications'].forEach(field => {
+                lines.push(`\n## ${field.charAt(0).toUpperCase() + field.slice(1)}\n${npc[field]}`);
+            });
+
+        return lines.join('\n');
+}

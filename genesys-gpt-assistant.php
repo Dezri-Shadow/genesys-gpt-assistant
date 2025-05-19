@@ -43,20 +43,17 @@ function gga_render_modal() {
           <div class="modal-header">
             <h5 class="modal-title" id="ggaModalLabel">Generated NPC</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            <button id="gga-download-json" class="btn btn-sm btn-outline-secondary float-end me-2" style="display:none;">
-              Download JSON
-            </button>
-            <button id="gga-download-md" class="btn btn-sm btn-outline-secondary float-end me-2" style="display:none;">
-              Download Markdown
-            </button>
           </div>
           <div class="modal-body">
             <pre id="gga-modal-content" class="mb-3"></pre> 
             <div id="gga-json-display"></div>
+          </div>
+          <div class="modal-footer justify-content-start">
+            <a id="gga-download-json" class="btn btn-outline-secondary me-2" style="display:none;">Download JSON</a>
+            <a id="gga-download-md" class="btn btn-outline-secondary" style="display:none;">Download Markdown</a>
           </div>
         </div>
       </div>
     </div>
     <?php
 }
-
