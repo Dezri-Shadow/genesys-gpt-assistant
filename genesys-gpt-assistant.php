@@ -28,6 +28,7 @@ function gga_saved_npcs_shortcode() {
     wp_enqueue_script('gga-frontend');
     wp_localize_script('gga-frontend', 'gga_data', [
         'nonce' => wp_create_nonce('wp_rest')
+        'api_url' => esc_url_raw(rest_url('gga/v1/'))
     ]);
 
     ob_start(); ?>
