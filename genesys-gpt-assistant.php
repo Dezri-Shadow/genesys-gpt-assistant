@@ -62,8 +62,6 @@ function gga_saved_npcs_shortcode() {
         return '<p>You must be logged in to view your saved NPCs.</p>';
     }
 
-    wp_enqueue_script('gga-frontend');
-
     ob_start(); ?>
     <div id="gga-saved-npcs" class="mt-4">
         <h4>My Saved NPCs</h4>
