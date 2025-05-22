@@ -68,13 +68,19 @@ function gga_saved_npcs_shortcode() {
         <ul id="gga-npc-link-list" class="list-unstyled"></ul>
     </div>
 
-    <!-- Modal for rendering NPCs -->
+    <?php
+    return ob_get_clean();
+}
+
+add_action('wp_footer', 'gga_render_saved_npc_modal');
+function gga_render_saved_npc_modal() {
+    ?>
     <div class="modal fade" id="gga-saved-npc-modal" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
           <div class="modal-header">
             <h5 class="modal-title" id="gga-modal-title">NPC Details</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body" id="gga-saved-npc-display">
             <em>Loading...</em>
@@ -83,8 +89,8 @@ function gga_saved_npcs_shortcode() {
       </div>
     </div>
     <?php
-    return ob_get_clean();
 }
+
 
 // Shortcode for frontend form
 function gga_render_form() {
