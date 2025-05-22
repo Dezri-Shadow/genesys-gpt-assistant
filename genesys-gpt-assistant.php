@@ -85,6 +85,9 @@ function gga_render_saved_npc_modal() {
           <div class="modal-body" id="gga-saved-npc-display">
             <em>Loading...</em>
           </div>
+          <div class="modal-footer justify-content-start">
+            <button id="gga-delete-npc" class="btn btn-danger">Delete NPC</button>
+          </div>
         </div>
       </div>
     </div>

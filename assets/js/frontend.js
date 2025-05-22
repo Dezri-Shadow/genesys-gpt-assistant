@@ -379,6 +379,27 @@ function loadSavedNPCs() {
             });
             list.append(link);
         });
+        $('#gga-delete-npc').on('click', function () {
+                const index = $(this).data('index');
+                if (confirm('Are you sure you want to delete this NPC?')) {
+                    fetch(`${gga_data.api_url}delete`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-WP-Nonce': gga_data.nonce
+                        },
+                        body: JSON.stringify({ index })
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        alert(data.message || 'NPC deleted.');
+                        loadSavedNPCs(); // Refresh list
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('gga-saved-npc-modal'));
+                        modal.hide();
+                    })
+                    .catch(err => alert('Failed to delete NPC.'));
+                }
+        });
     })
     .catch(err => {
         console.error('Failed to load NPCs:', err);

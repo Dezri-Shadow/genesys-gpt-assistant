@@ -32,6 +32,15 @@ add_action('rest_api_init', function() {
             return current_user_can('read');
         }
     ]);
+
+    register_rest_route('gga/v1', '/delete', [
+        'methods' => 'POST',
+        'callback' => 'gga_delete_npc_handler',
+        'permission_callback' => function () {
+            return current_user_can('read');
+        }
+    ]);
+
 });
 
 function gga_get_saved_npcs() {
@@ -239,4 +248,20 @@ EOT;
         'model' => $model,
         'system_message_snippet' => substr($system_msg, 0, 100) . '...'
     ];
+}
+
+function gga_delete_npc_handler($request) {
+    $user_id = get_current_user_id();
+    $npcs = get_user_meta($user_id, 'gga_saved_npcs', true) ?: [];
+    $params = $request->get_json_params();
+    $index = intval($params['index'] ?? -1);
+
+    if ($index < 0 || !isset($npcs[$index])) {
+        return new WP_REST_Response(['error' => 'Invalid NPC index'], 400);
+    }
+
+    array_splice($npcs, $index, 1);
+    update_user_meta($user_id, 'gga_saved_npcs', $npcs);
+
+    return new WP_REST_Response(['message' => 'NPC deleted.'], 200);
 }
