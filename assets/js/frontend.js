@@ -69,21 +69,24 @@ jQuery(document).ready(function($) {
 
                     console.log('Raw GPT content:', content);
 
-                    // Sanitize content from GPT
+                    // Clean GPT response to raw JSON
                     content = content
-                        .replace(/^\s*```json\s*/i, '')    // Remove Markdown code block start
-                        .replace(/\s*```$/, '')            // Remove code block end
-                        .replace(/[“”]/g, '"')             // Replace curly quotes with standard
-                        .replace(/[‘’]/g, "'")             // Replace curly single quotes
-                        .replace(/""/g, '"')               // collapsed quotes → single quote
-                        .replace(/\\?""/g, '\\"')          // extra protection
-                        .replace(/(?<!\\)"/g, '\\"')       // escape unescaped quotes
-                        .replace(/""([^"”]+)""/g, (_, inner) => `"${inner.replace(/"/g, '\\"')}"`)  // double quote strings → escaped
-                        .trim();                           // Remove leading/trailing whitespace
-                    
+                        .replace(/^\s*```json\s*/i, '')    // Strip code block start
+                        .replace(/\s*```$/, '')            // Strip code block end
+                        .replace(/[“”]/g, '"')             // Curly quotes → standard
+                        .replace(/[‘’]/g, "'")             // Curly apostrophes → standard
+                        .trim();
+
                     console.log('sanitized GPT content:', content);
 
-                    const parsed = JSON.parse(content);
+                        let raw = content;
+
+                        // If it appears to be a JSON string (double quotes at start/end), unwrap once
+                        if (raw.startsWith('"') && raw.endsWith('"')) {
+                            raw = JSON.parse(raw); // unquotes it
+                        }
+
+                    const parsed = JSON.parse(raw);
 
                     console.log("Parsed object:", parsed);
                 
