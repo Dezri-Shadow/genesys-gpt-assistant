@@ -140,6 +140,7 @@ function gga_handle_chat_request(WP_REST_Request $request) {
 
     **Narrative Fields:**
     - tactics, quirks, complications: short descriptive sentences.
+    When including strings in arrays (e.g., roleplay_prompts), ensure each is enclosed in double quotes and internal quotes are escaped. Do not include triple-quoted strings or mismatched delimiters.
 
     **System Output Template:**
     {

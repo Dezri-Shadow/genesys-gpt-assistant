@@ -75,7 +75,9 @@ jQuery(document).ready(function($) {
                         .replace(/\s*```$/, '')            // Remove code block end
                         .replace(/[“”]/g, '"')             // Replace curly quotes with standard
                         .replace(/[‘’]/g, "'")             // Replace curly single quotes
-                        .replace(/""/g, '"')     // collapsed quotes → single quote
+                        .replace(/""/g, '"')               // collapsed quotes → single quote
+                        .replace(/\\?""/g, '\\"')          // extra protection
+                        .replace(/(?<!\\)"/g, '\\"')       // escape unescaped quotes
                         .replace(/""([^"”]+)""/g, (_, inner) => `"${inner.replace(/"/g, '\\"')}"`)  // double quote strings → escaped
                         .trim();                           // Remove leading/trailing whitespace
                     
