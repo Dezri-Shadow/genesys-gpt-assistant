@@ -369,14 +369,16 @@ function loadSavedNPCs() {
         data.npcs.forEach((entry, index) => {
             const name = entry.name || `NPC ${index + 1}`;
             const link = $(`<li><a href="#" class="npc-link" data-index="${index}">${name}</a></li>`);
-            link.find('a').on('click', function (e) {
-                e.preventDefault();
-                const html = renderJSONToHTML(data.npcs[index].data);
-                $('#gga-saved-npc-display').html(html);
-                $('#gga-modal-title').text(data.npcs[index].name || 'NPC Details');
-                const modal = new bootstrap.Modal(document.getElementById('gga-saved-npc-modal'));
-                modal.show();
-            });
+                link.find('a').on('click', function (e) {
+                    e.preventDefault();
+                    const index = $(this).data('index'); // ← gets index from <a data-index="...">
+                    $('#gga-delete-npc').data('index', index); // ← stores for delete
+                    const html = renderJSONToHTML(data.npcs[index].data);
+                    $('#gga-saved-npc-display').html(html);
+                    $('#gga-modal-title').text(data.npcs[index].name || `NPC ${index + 1}`);
+                    const modal = new bootstrap.Modal(document.getElementById('gga-saved-npc-modal'));
+                    modal.show();
+                });
             list.append(link);
         });
         $('#gga-delete-npc').on('click', function () {
